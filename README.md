@@ -1,14 +1,14 @@
 # LSB Steganography Mini-App
 
-A simple desktop application built with Python Tkinter that allows you to hide text messages inside PNG images using Least Significant Bit (LSB) steganography, and later recover them.
+A simple desktop application built with Python Tkinter that allows you to hide text messages inside image samples using Least Significant Bit (LSB) steganography, and later recover them. The GUI accepts several image file extensions, converts decoded input to RGB, and saves encoded output as PNG.
 
 ## Features
 
-- **Encode Tab**: Select a PNG image, enter a secret message, and save a new image with the hidden message
+- **Encode Tab**: Select a supported image, enter a secret message, and save a new PNG image with the hidden message
 - **Decode Tab**: Select an image that contains a hidden message and extract the text
 - **User-Friendly Interface**: Clean, simple layout suitable for beginners
 - **Feedback System**: Clear status messages for success and error conditions
-- **PNG Optimized**: Works best with PNG images (lossless format preserves hidden data)
+- **PNG Output**: Encoded output is saved as PNG; use lossless images and do not resize, filter, or convert the encoded file if you need to recover the message
 
 ## Requirements
 
@@ -36,10 +36,10 @@ A simple desktop application built with Python Tkinter that allows you to hide t
 
 2. **To Encode a Message**:
    - Go to the "Encode" tab
-   - Click "Browse..." to select a PNG image
+   - Click "Browse Photo" to select an image with a supported extension
    - Type your secret message in the text box
    - Click "Encode → Save"
-   - The application will save a new image with "_encoded" suffix containing your hidden message
+   - The application will save a new PNG image with "_encoded" suffix containing your hidden message
 
 3. **To Decode a Message**:
    - Go to the "Decode" tab
@@ -57,12 +57,15 @@ This application uses Least Significant Bit (LSB) steganography:
 
 ## Capacity Calculation
 
-Each pixel can store 3 bits (one per color channel):
-- Maximum message length in bits = (image_width × image_height × 3) - 32
-- Maximum message length in characters = floor(max_bits / 8)
+Each RGB pixel supplies 3 channel LSBs. The first 32 bits store payload length in bits:
+- Total channel slots = image_width × image_height × 3
+- Payload capacity in bits = total channel slots - 32
+- Maximum whole UTF-8 payload bytes = floor(payload capacity in bits / 8)
 
-For example, a 100×100 pixel image can store approximately:
-- (100 × 100 × 3 - 32) / 8 = 373 characters
+For example, a 100×100 RGB image provides:
+- (100 × 100 × 3 - 32) / 8 = 3,746 whole payload bytes
+
+This is a byte limit, not necessarily a character limit: UTF-8 characters can use multiple bytes. The implementation is educational and does not encrypt or authenticate the message.
 
 ## Notes
 
@@ -74,8 +77,12 @@ For example, a 100×100 pixel image can store approximately:
 ## Troubleshooting
 
 - **"Image is too small" error**: Try a larger image or a shorter message
-- **"Only PNG images are supported"**: Convert your image to PNG format first
+- **Unsupported image extension**: Select a file with one of the extensions accepted by the GUI; Pillow must still be able to read the file
 - **No message extracted**: Make sure you're using an image that was actually encoded with this application
+
+## Technical Report
+
+The implementation-grounded technical report, including the algorithm analysis, system diagrams, security limitations, and executed test evidence, is available in [PROJECT_REPORT.md](PROJECT_REPORT.md). Its modular chapter sources and report builder are in [`docs/report/`](docs/report/).
 
 ## License
 

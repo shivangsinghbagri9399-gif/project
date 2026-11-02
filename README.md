@@ -51,12 +51,23 @@ python -m pip install -r requirements.txt
 streamlit run app.py
 ```
 
-#### Free online deployment with Streamlit Community Cloud
+#### Deploy with Streamlit Community Cloud
 
-1. Push this project to a GitHub repository.
-2. Sign in at [share.streamlit.io](https://share.streamlit.io/) with GitHub.
-3. Choose **Create app**, select the repository and branch, and set the app file to `app.py`.
-4. Deploy; Streamlit will install packages from `requirements.txt` and provide a shareable URL.
+The repository is set up for Streamlit Community Cloud. The app entry point is
+`app.py`, and its dependencies are listed in the root `requirements.txt`.
+
+1. Push the project to GitHub, including `app.py`, `steganography.py`, and
+   `requirements.txt`.
+2. Sign in at [share.streamlit.io](https://share.streamlit.io/) with GitHub and
+   select **Create app**.
+3. Select this repository, the `main` branch, and `app.py` as the app file.
+4. In **Advanced settings**, choose Python **3.14** to match the development
+   environment.
+5. Select **Deploy**. Community Cloud installs the packages from
+   `requirements.txt` and gives the app a public URL.
+
+No secrets or extra operating-system packages are needed. Future commits pushed
+to the selected branch are picked up by Community Cloud automatically.
 
 The web app processes uploaded images in memory and does not intentionally save them. A public deployment is still not appropriate for private images or sensitive messages; this tool does not encrypt or authenticate content.
 

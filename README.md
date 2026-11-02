@@ -1,6 +1,6 @@
-# LSB Steganography Mini-App
+# LSB Steganography App
 
-A simple desktop application built with Python Tkinter that allows you to hide text messages inside image samples using Least Significant Bit (LSB) steganography, and later recover them. The GUI accepts several image file extensions, converts decoded input to RGB, and saves encoded output as PNG.
+A desktop and web application that hides text messages inside images using Least Significant Bit (LSB) steganography, and can recover them later. The web interface is built with Streamlit; both interfaces save encoded output as PNG.
 
 ## Features
 
@@ -9,11 +9,14 @@ A simple desktop application built with Python Tkinter that allows you to hide t
 - **User-Friendly Interface**: Clean, simple layout suitable for beginners
 - **Feedback System**: Clear status messages for success and error conditions
 - **PNG Output**: Encoded output is saved as PNG; use lossless images and do not resize, filter, or convert the encoded file if you need to recover the message
+- **Web App**: Use the browser-based interface to encode and decode images
 
 ## Requirements
 
 - Python 3.x
+- Tkinter for the desktop app
 - Pillow library (PIL fork)
+- Streamlit for the web app
 
 ## Installation
 
@@ -29,23 +32,46 @@ A simple desktop application built with Python Tkinter that allows you to hide t
 
 ## Usage
 
-1. Run the application:
-   ```bash
-   python steg_app.py
-   ```
+### Desktop app
 
-2. **To Encode a Message**:
-   - Go to the "Encode" tab
-   - Click "Browse Photo" to select an image with a supported extension
+1. Start the application:
+   - On Windows, double-click `run.bat`. It installs the required packages on first run if needed.
+   - On macOS, double-click `run.command`. It creates a local Python environment and installs Pillow on first run if needed. If Tkinter is missing, install Python from [python.org](https://www.python.org/downloads/macos/) and try again. If macOS blocks the launcher, right-click it, choose **Open**, and confirm.
+   - Or run it manually:
+     ```bash
+     python steg_app.py
+     ```
+
+### Web app
+
+Install dependencies and run locally:
+
+```bash
+python -m pip install -r requirements.txt
+streamlit run app.py
+```
+
+#### Free online deployment with Streamlit Community Cloud
+
+1. Push this project to a GitHub repository.
+2. Sign in at [share.streamlit.io](https://share.streamlit.io/) with GitHub.
+3. Choose **Create app**, select the repository and branch, and set the app file to `app.py`.
+4. Deploy; Streamlit will install packages from `requirements.txt` and provide a shareable URL.
+
+The web app processes uploaded images in memory and does not intentionally save them. A public deployment is still not appropriate for private images or sensitive messages; this tool does not encrypt or authenticate content.
+
+### Using the app
+
+1. **To Encode a Message**:
+   - Open the Encode tab
+   - Select a cover image with a supported extension
    - Type your secret message in the text box
-   - Click "Encode → Save"
-   - The application will save a new PNG image with "_encoded" suffix containing your hidden message
+   - Click the encode button and download the resulting PNG
 
-3. **To Decode a Message**:
-   - Go to the "Decode" tab
-   - Click "Browse..." to select an image that contains a hidden message
-   - Click "Decode → Show"
-   - The hidden message will appear in the text box below
+2. **To Decode a Message**:
+   - Open the Decode tab
+   - Select an image that contains a hidden message
+   - Click the decode button to show the extracted text
 
 ## How It Works
 

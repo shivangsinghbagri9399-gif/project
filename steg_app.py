@@ -10,137 +10,14 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox, StringVar, IntVar
 
 from PIL import Image, ImageTk
-
-# ----------------------------------------------------------------------
-# Helper functions – LSB operations
-# ----------------------------------------------------------------------
-def rgb_to_bytes(r, g, b):
-    """Pack three 8‑bit channels into a single 24‑bit integer."""
-    return (r << 16) | (g << 8) | b
-
-def int_to_rgb(value):
-    """Unpack a 24‑bit integer back to (R, G, B)."""
-    return ((value >> 16) & 0xFF, (value >> 8) & 0xFF, value & 0xFF)
-
-def extract_bits_from_image(image):
-    """Yield LSBs from each channel of each pixel (row‑major order)."""
-    for pixel in image.getdata():
-        if len(pixel) == 3:               # RGB
-            r, g, b = pixel
-            yield r & 1
-            yield g & 1
-            yield b & 1
-        elif len(pixel) == 4:              # RGBA – ignore alpha LSB
-            r, g, b, _ = pixel
-            yield r & 1
-            yield g & 1
-            yield b & 1
-        else:
-            # Grayscale etc. – just take the first three channels if available
-            for channel in pixel[:3]:
-                yield channel & 1
-
-def embed_bits_into_image(image, bits, max_bits):
-    """Replace LSBs of the image with `bits` (list of 0/1) up to `max_bits`."""
-    if len(bits) > max_bits:
-        raise ValueError(f"Message too long for this image (needs {len(bits)} bits, "
-                         f"max {max_bits} available).")
-
-    new_pixels = []
-    bit_iter = iter(bits)
-    for pixel in image.getdata():
-        if len(pixel) >= 3:
-            r, g, b = pixel[:3]
-            # Replace LSB of each channel with next bit (if any)
-            r = (r & 0xFE) | next(bit_iter, 0)
-            g = (g & 0xFE) | next(bit_iter, 0)
-            b = (b & 0xFE) | next(bit_iter, 0)
-            new_pixel = list(pixel)
-            new_pixel[:3] = (r, g, b)
-            new_pixels.append(tuple(new_pixel))
-        else:
-            new_pixels.append(pixel)
-
-        if len(new_pixels) * 3 >= len(bits):
-            break
-
-    # Pad the rest of the pixel data unchanged
-    raw = list(image.getdata())
-    for i in range(len(new_pixels), len(raw)):
-        new_pixels.append(raw[i])
-
-    # Build the new image
-    new_img = Image.new(image.mode, image.size)
-    new_img.putdata(new_pixels)
-    return new_img
-
-
-def hide_message(image_path, message, output_path):
-    """Encode `message` into `image_path` and save to `output_path`."""
-    img = Image.open(image_path).convert("RGB")
-    width, height = img.size
-    capacity_bits = width * height * 3   # 3 bits per pixel (R,G,B)
-
-    # Length prefix: 32 bits (stores message length in bits)
-    msg_bytes = message.encode("utf-8")
-    msg_len_bits = len(msg_bytes) * 8
-    if msg_len_bits > capacity_bits - 32:
-        raise ValueError("Image is too small to hold this message.")
-
-    # Build bit list: 32‑bit length + message bits
-    length_bits = [(msg_len_bits >> i) & 1 for i in range(31, -1, -1)]
-    msg_bits = [ (msg_bytes[j // 8] >> (7 - (j % 8))) & 1
-                 for j in range(len(msg_bytes) * 8) ]
-    bits = length_bits + msg_bits
-
-    stego_img = embed_bits_into_image(img, bits, capacity_bits)
-    stego_img.save(output_path)
-    return stego_img
-
-
-def extract_message(stego_path):
-    """Decode hidden message from a stego image."""
-    img = Image.open(stego_path).convert("RGB")
-    width, height = img.size
-
-    capacity_bits = width * height * 3
-    if capacity_bits < 32:
-        raise ValueError("Image is too small to contain a hidden message.")
-
-    # Read first 32 bits to get length
-    length_bits = []
-    bit_iter = extract_bits_from_image(img)
-    for _ in range(32):
-        length_bits.append(next(bit_iter, 0))
-
-    # Convert 32 bits (MSB first) to integer - this is message length in BITS
-    message_len_bits = 0
-    for bit in length_bits:
-        message_len_bits = (message_len_bits << 1) | bit
-
-    if message_len_bits % 8:
-        raise ValueError("The encoded message length is invalid.")
-    if message_len_bits > capacity_bits - 32:
-        raise ValueError("The image does not contain a valid hidden message.")
-
-    # Read the remaining bits (message_len_bits)
-    total_bits_to_read = 32 + message_len_bits
-    needed_bits = []
-    bit_iter = extract_bits_from_image(img)
-    for _ in range(total_bits_to_read):
-        needed_bits.append(next(bit_iter, 0))
-
-    # Extract message bytes (8 bits per byte)
-    message_bytes = []
-    for i in range(0, message_len_bits, 8):
-        byte = 0
-        for j in range(8):
-            if i + j < len(needed_bits):
-                byte |= (needed_bits[32 + i + j] << (7 - j))
-        message_bytes.append(byte)
-
-    message = bytes(message_bytes).decode("utf-8", errors="ignore")
-    return message
+from steganography import (
+    embed_bits_into_image,
+    extract_bits_from_image,
+    extract_message,
+    hide_message,
+    int_to_rgb,
+    rgb_to_bytes,
+)
 
 
 # ----------------------------------------------------------------------

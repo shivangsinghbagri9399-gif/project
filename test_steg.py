@@ -5,6 +5,7 @@ Test script for the LSB steganography functionality.
 
 import os
 import tempfile
+from io import BytesIO
 from PIL import Image
 from steg_app import hide_message, extract_message
 
@@ -99,6 +100,26 @@ def test_utf8_support():
             print(f"Decoded:  {decoded_message}")
             return False
 
+def test_in_memory_images():
+    """Test encoding and decoding with in-memory image streams."""
+    print("\nTesting in-memory image streams...")
+
+    image = create_test_image()
+    image_stream = BytesIO()
+    image.save(image_stream, format="PNG")
+
+    encoded_stream = BytesIO()
+    message = "In-memory UTF-8 test: café"
+    hide_message(BytesIO(image_stream.getvalue()), message, encoded_stream)
+    decoded = extract_message(BytesIO(encoded_stream.getvalue()))
+
+    if decoded == message:
+        print("PASS: In-memory image streams work correctly")
+        return True
+
+    print("FAIL: In-memory decode did not match the original message")
+    return False
+
 def test_multiple_images():
     """Test with different image sizes."""
     print("\nTesting different image sizes...")
@@ -136,6 +157,7 @@ if __name__ == "__main__":
         test_encode_decode,
         test_capacity_limits,
         test_utf8_support,
+        test_in_memory_images,
         test_multiple_images,
     ]
 

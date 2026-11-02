@@ -1,6 +1,6 @@
 # Abstract
 
-**Implementation note:** This report describes the earlier desktop-only version. The current Streamlit web app also supports optional password-based authenticated encryption before embedding; the Tkinter desktop interface remains plaintext-only.
+**Implementation note:** This report describes the earlier desktop-only version. The current Streamlit web app also supports authenticated encryption before embedding, using a generated key file by default or a password-derived key; plaintext mode remains available. The Tkinter desktop interface remains plaintext-only.
 
 The LSB Steganography Mini-App is a local Python desktop program for embedding and recovering UTF-8 text in image samples by replacing least significant bits (LSBs) in RGB channel values. It addresses an educational problem: demonstrating how text bytes, image pixels, and a reversible bit-level transformation can be connected in an interactive program, while making clear that data hiding is not cryptographic confidentiality.
 

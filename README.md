@@ -10,7 +10,7 @@ A desktop and web application that hides text messages inside images using Least
 - **Feedback System**: Clear status messages for success and error conditions
 - **PNG Output**: Encoded output is saved as PNG; use lossless images and do not resize, filter, or convert the encoded file if you need to recover the message
 - **Web App**: Use the browser-based interface to encode and decode images
-- **Optional password encryption**: Encrypt a message before hiding it in the Streamlit web app; decoding asks for the same password
+- **Encryption by default**: The Streamlit web app encrypts with a generated key file by default; password-based encryption and plaintext mode are also available
 
 ## Requirements
 
@@ -79,16 +79,17 @@ The web app processes uploaded images in memory and does not intentionally save 
    - Open the Encode tab
    - Select a cover image with a supported extension
    - Type your secret message in the text box
-   - Optionally select **Encrypt message with a password**, then enter and confirm a strong password
-   - Click the encode button and download the resulting PNG
+   - Encryption is on by default; after encoding, download both the PNG and its generated `.key` file
+   - You can choose **Use a password** instead, or turn encryption off
+   - Click **Encode image**
 
 2. **To Decode a Message**:
    - Open the Decode tab
    - Select an image that contains a hidden message
-   - Click the decode button to show the extracted text
-   - If the image contains an encrypted message, enter the password and select **Decrypt message**
+   - Click **Decode image**; for a generated-key image, upload its `.key` file and click **Decrypt message**
+   - For password-encrypted images, enter the password when prompted
 
-Password encryption is optional and is available in the Streamlit web app. The password is not embedded in the image; a random salt and authenticated ciphertext are. Keep the password safe because it cannot be recovered. Older images encoded without encryption continue to decode without a password. Encryption increases the payload size, and LSB steganography still does not protect an image from detection or pixel-changing edits.
+Encryption is available in the Streamlit web app. By default, the app generates a separate key file, so there is no password to type; keep the key file separate from the image. You can choose password-based encryption or turn encryption off. Passwords and generated keys are never embedded in the image. Keep the password or key file safe because it cannot be recovered. Older images encoded without encryption continue to decode without a key. Encryption increases the payload size, and LSB steganography still does not protect an image from detection or pixel-changing edits.
 
 ## How It Works
 

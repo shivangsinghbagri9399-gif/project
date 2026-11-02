@@ -15,9 +15,9 @@
 2. **Extract the message**: Click "Decode → Show" to retrieve the hidden text.
 3. **View the result**: The decoded message will appear in the text area below.
 
-## Optional password encryption in the web app
+## Encryption in the web app
 
-In the Streamlit Encode tab, enable **Encrypt message with a password**, enter a strong passphrase, and confirm it before encoding. When decoding that image in the Streamlit app, enter the same passphrase when prompted. The app detects encrypted payloads automatically; images encoded without encryption still decode as before. Passwords cannot be recovered, and encryption overhead reduces the image's message capacity.
+In the Streamlit Encode tab, encryption is enabled by default. The default method generates a separate key file, so no password is required: download and keep the `.key` file separate from the PNG. On decode, first upload and decode the image, then upload its matching key file when prompted. You can instead choose password encryption and enter a strong passphrase, or turn encryption off. The app detects encrypted payloads automatically. Images encoded without encryption still decode without a key. Lost passwords and key files cannot be recovered, and encryption overhead reduces image capacity.
 
 ## Best Practices
 
@@ -47,4 +47,4 @@ These are UTF-8 byte capacities, not guaranteed character counts.
 - **Fix**: Re-encode or try a different image
 
 ### Visual and security limitations
-The encoder changes RGB least significant bits, with each changed channel varying by at most one intensity level. This alone does not establish perceptual invisibility or resistance to steganalysis. Messages are plaintext unless password encryption is enabled in the Streamlit web app; encrypted messages are authenticated. The desktop GUI does not currently offer password encryption.
+The encoder changes RGB least significant bits, with each changed channel varying by at most one intensity level. This alone does not establish perceptual invisibility or resistance to steganalysis. Streamlit encrypts messages by default with a separate key file, with password and plaintext modes available. Encrypted messages are authenticated. The desktop GUI does not currently offer encryption.

@@ -7,12 +7,23 @@ import os
 from PIL import Image
 
 ENCRYPTED_MESSAGE_PREFIX = "LSB-ENC:v1:"
+KEY_ENCRYPTED_MESSAGE_PREFIX = "LSB-KEY:v1:"
 PASSWORD_KDF_ITERATIONS = 1_200_000
 
 
 def is_encrypted_message(message):
     """Return whether a decoded payload uses this app's encrypted format."""
+    return is_password_encrypted_message(message) or is_key_encrypted_message(message)
+
+
+def is_password_encrypted_message(message):
+    """Return whether a decoded payload uses password-based encryption."""
     return message.startswith(ENCRYPTED_MESSAGE_PREFIX)
+
+
+def is_key_encrypted_message(message):
+    """Return whether a decoded payload uses a separate generated key."""
+    return message.startswith(KEY_ENCRYPTED_MESSAGE_PREFIX)
 
 
 def _derive_encryption_key(password, salt):
@@ -43,6 +54,16 @@ def encrypt_message(message, password):
     return f"{ENCRYPTED_MESSAGE_PREFIX}{encoded_salt}:{encrypted.decode('ascii')}"
 
 
+def encrypt_message_with_key(message):
+    """Encrypt text with a random key returned for separate safekeeping."""
+    from cryptography.fernet import Fernet
+
+    key = Fernet.generate_key()
+    encrypted = Fernet(key).encrypt(message.encode("utf-8"))
+    envelope = f"{KEY_ENCRYPTED_MESSAGE_PREFIX}{encrypted.decode('ascii')}"
+    return envelope, key
+
+
 def decrypt_message(envelope, password):
     """Authenticate and decrypt an encrypted message envelope."""
     from cryptography.fernet import InvalidToken
@@ -64,6 +85,23 @@ def decrypt_message(envelope, password):
     except (InvalidToken, binascii.Error, UnicodeError, ValueError):
         raise ValueError(
             "Wrong password or encrypted message is damaged."
+        ) from None
+
+
+def decrypt_message_with_key(envelope, key):
+    """Authenticate and decrypt a generated-key message using its key file."""
+    from cryptography.fernet import Fernet, InvalidToken
+
+    if not is_key_encrypted_message(envelope):
+        raise ValueError("This image does not use a generated decryption key.")
+
+    try:
+        token = envelope[len(KEY_ENCRYPTED_MESSAGE_PREFIX):].encode("ascii")
+        plaintext = Fernet(key.strip()).decrypt(token)
+        return plaintext.decode("utf-8")
+    except (InvalidToken, TypeError, UnicodeError, ValueError):
+        raise ValueError(
+            "Wrong key or encrypted message is damaged."
         ) from None
 
 

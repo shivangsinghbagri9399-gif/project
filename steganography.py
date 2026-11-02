@@ -1,6 +1,70 @@
 """LSB image encoding and decoding operations shared by the app interfaces."""
 
+import base64
+import binascii
+import os
+
 from PIL import Image
+
+ENCRYPTED_MESSAGE_PREFIX = "LSB-ENC:v1:"
+PASSWORD_KDF_ITERATIONS = 1_200_000
+
+
+def is_encrypted_message(message):
+    """Return whether a decoded payload uses this app's encrypted format."""
+    return message.startswith(ENCRYPTED_MESSAGE_PREFIX)
+
+
+def _derive_encryption_key(password, salt):
+    """Derive a Fernet key from a password and per-message random salt."""
+    from cryptography.fernet import Fernet
+    from cryptography.hazmat.primitives import hashes
+    from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+
+    kdf = PBKDF2HMAC(
+        algorithm=hashes.SHA256(),
+        length=32,
+        salt=salt,
+        iterations=PASSWORD_KDF_ITERATIONS,
+    )
+    return Fernet(base64.urlsafe_b64encode(kdf.derive(password.encode("utf-8"))))
+
+
+def encrypt_message(message, password):
+    """Encrypt UTF-8 text and return an ASCII envelope safe to hide in an image."""
+    if not password:
+        raise ValueError("Enter a password to encrypt the message.")
+
+    salt = os.urandom(16)
+    encrypted = _derive_encryption_key(password, salt).encrypt(
+        message.encode("utf-8")
+    )
+    encoded_salt = base64.urlsafe_b64encode(salt).decode("ascii")
+    return f"{ENCRYPTED_MESSAGE_PREFIX}{encoded_salt}:{encrypted.decode('ascii')}"
+
+
+def decrypt_message(envelope, password):
+    """Authenticate and decrypt an encrypted message envelope."""
+    from cryptography.fernet import InvalidToken
+
+    if not password:
+        raise ValueError("Enter the password used to encrypt this message.")
+    if not is_encrypted_message(envelope):
+        raise ValueError("This image does not contain a password-encrypted message.")
+
+    try:
+        encoded_salt, token = envelope[len(ENCRYPTED_MESSAGE_PREFIX):].split(":", 1)
+        salt = base64.b64decode(encoded_salt, altchars=b"-_", validate=True)
+        if len(salt) != 16:
+            raise ValueError("Invalid encryption metadata.")
+        plaintext = _derive_encryption_key(password, salt).decrypt(
+            token.encode("ascii")
+        )
+        return plaintext.decode("utf-8")
+    except (InvalidToken, binascii.Error, UnicodeError, ValueError):
+        raise ValueError(
+            "Wrong password or encrypted message is damaged."
+        ) from None
 
 
 def rgb_to_bytes(r, g, b):

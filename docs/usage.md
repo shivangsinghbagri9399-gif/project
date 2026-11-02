@@ -15,6 +15,10 @@
 2. **Extract the message**: Click "Decode → Show" to retrieve the hidden text.
 3. **View the result**: The decoded message will appear in the text area below.
 
+## Optional password encryption in the web app
+
+In the Streamlit Encode tab, enable **Encrypt message with a password**, enter a strong passphrase, and confirm it before encoding. When decoding that image in the Streamlit app, enter the same passphrase when prompted. The app detects encrypted payloads automatically; images encoded without encryption still decode as before. Passwords cannot be recovered, and encryption overhead reduces the image's message capacity.
+
 ## Best Practices
 
 ### Image Selection
@@ -43,4 +47,4 @@ These are UTF-8 byte capacities, not guaranteed character counts.
 - **Fix**: Re-encode or try a different image
 
 ### Visual and security limitations
-The encoder changes RGB least significant bits, with each changed channel varying by at most one intensity level. This alone does not establish perceptual invisibility or resistance to steganalysis. The message is not encrypted or authenticated.
+The encoder changes RGB least significant bits, with each changed channel varying by at most one intensity level. This alone does not establish perceptual invisibility or resistance to steganalysis. Messages are plaintext unless password encryption is enabled in the Streamlit web app; encrypted messages are authenticated. The desktop GUI does not currently offer password encryption.

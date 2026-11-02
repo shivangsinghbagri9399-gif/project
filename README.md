@@ -10,6 +10,7 @@ A desktop and web application that hides text messages inside images using Least
 - **Feedback System**: Clear status messages for success and error conditions
 - **PNG Output**: Encoded output is saved as PNG; use lossless images and do not resize, filter, or convert the encoded file if you need to recover the message
 - **Web App**: Use the browser-based interface to encode and decode images
+- **Optional password encryption**: Encrypt a message before hiding it in the Streamlit web app; decoding asks for the same password
 
 ## Requirements
 
@@ -17,6 +18,7 @@ A desktop and web application that hides text messages inside images using Least
 - Tkinter for the desktop app
 - Pillow library (PIL fork)
 - Streamlit for the web app
+- Cryptography library for optional password encryption in the web app
 
 ## Installation
 
@@ -69,7 +71,7 @@ The repository is set up for Streamlit Community Cloud. The app entry point is
 No secrets or extra operating-system packages are needed. Future commits pushed
 to the selected branch are picked up by Community Cloud automatically.
 
-The web app processes uploaded images in memory and does not intentionally save them. A public deployment is still not appropriate for private images or sensitive messages; this tool does not encrypt or authenticate content.
+The web app processes uploaded images in memory and does not intentionally save them. A public deployment is still not appropriate for private images or sensitive messages.
 
 ### Using the app
 
@@ -77,12 +79,16 @@ The web app processes uploaded images in memory and does not intentionally save 
    - Open the Encode tab
    - Select a cover image with a supported extension
    - Type your secret message in the text box
+   - Optionally select **Encrypt message with a password**, then enter and confirm a strong password
    - Click the encode button and download the resulting PNG
 
 2. **To Decode a Message**:
    - Open the Decode tab
    - Select an image that contains a hidden message
    - Click the decode button to show the extracted text
+   - If the image contains an encrypted message, enter the password and select **Decrypt message**
+
+Password encryption is optional and is available in the Streamlit web app. The password is not embedded in the image; a random salt and authenticated ciphertext are. Keep the password safe because it cannot be recovered. Older images encoded without encryption continue to decode without a password. Encryption increases the payload size, and LSB steganography still does not protect an image from detection or pixel-changing edits.
 
 ## How It Works
 
@@ -102,7 +108,7 @@ Each RGB pixel supplies 3 channel LSBs. The first 32 bits store payload length i
 For example, a 100×100 RGB image provides:
 - (100 × 100 × 3 - 32) / 8 = 3,746 whole payload bytes
 
-This is a byte limit, not necessarily a character limit: UTF-8 characters can use multiple bytes. The implementation is educational and does not encrypt or authenticate the message.
+This is a byte limit, not necessarily a character limit: UTF-8 characters can use multiple bytes. Password encryption adds overhead, so an encrypted message has a lower maximum plaintext capacity.
 
 ## Notes
 
